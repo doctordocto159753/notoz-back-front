@@ -1,15 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../src/app.js'
 
 // Reuse Fastify across warm invocations, but avoid crashing the function at import-time
 // if env is missing/misconfigured.
-let app: FastifyInstance | null = null
+type App = Awaited<ReturnType<typeof buildApp>>
+
+let appPromise: ReturnType<typeof buildApp> | null = null
 let readyPromise: Promise<void> | null = null
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    if (!app) app = buildApp()
+    if (!appPromise) appPromise = buildApp()
+
+    const app: App = await appPromise
+
     if (!readyPromise) readyPromise = app.ready()
     await readyPromise
 
@@ -26,8 +30,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       JSON.stringify({
         ok: false,
         error: 'FUNCTION_INVOCATION_FAILED',
-        message: err?.message ?? 'Unknown error'
-      })
+        message: err?.message ?? 'Unknown error',
+      }),
     )
   }
 }
