@@ -1,0 +1,17 @@
+{
+  "name": "noto-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "npm -w @noto/backend run lint",
+    "format": "npm -w @noto/backend run format",
+    "test": "npm -w @noto/backend run test",
+    "build": "npm -w @noto/backend run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

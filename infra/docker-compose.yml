@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+    - 5432:5432
+    volumes:
+    - noto_pg:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  backend:
+    build:
+      context: ../
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      DATABASE_URL: ${DATABASE_URL}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB}
+      MEDIA_STORAGE_PATH: ${MEDIA_STORAGE_PATH}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
+      RATE_LIMIT_TIME_WINDOW: ${RATE_LIMIT_TIME_WINDOW}
+    ports:
+    - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+    - noto_media:${MEDIA_STORAGE_PATH}
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - fetch('http://localhost:8080/healthz').then(r=>{if(!r.ok) process.exit(1)}).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 3s
+      retries: 20
+  frontend:
+    build:
+      context: ../
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8080
+    ports:
+    - 3000:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment: {}
+volumes:
+  noto_pg: null
+  noto_media: null
