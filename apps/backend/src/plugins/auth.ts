@@ -13,8 +13,8 @@ export default fp(async (app: FastifyInstance) => {
 
   app.decorate('auth', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
-      const payload = await req.jwtVerify<{ sub: string; username: string }>()
-      req.user = { id: payload.sub, username: payload.username }
+      const payload = await req.jwtVerify<{ id: string; username: string }>()
+      req.user = { id: payload.id, username: payload.username }
     } catch {
       return reply.code(401).send({ error: 'UNAUTHORIZED' })
     }
