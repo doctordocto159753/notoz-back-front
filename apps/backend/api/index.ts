@@ -1,18 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../src/app.js'
 
 // Reuse Fastify across warm invocations, but avoid crashing the function at import-time
 // if env is missing/misconfigured.
-type App = Awaited<ReturnType<typeof buildApp>>
+let app: FastifyInstance | null = null
 
-let appPromise: ReturnType<typeof buildApp> | null = null
-let readyPromise: Promise<void> | null = null
+// ✅ FIX: Fastify's app.ready() is PromiseLike (thenable), not Promise<void>
+let readyPromise: PromiseLike<unknown> | null = null
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    if (!appPromise) appPromise = buildApp()
-
-    const app: App = await appPromise
+    if (!app) app = buildApp()
 
     if (!readyPromise) readyPromise = app.ready()
     await readyPromise
