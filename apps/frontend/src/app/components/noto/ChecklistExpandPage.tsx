@@ -4,11 +4,11 @@ import { TagManager } from "./TagManager";
 import { TagChip } from "./TagChip";
 import { AlarmPicker } from "./AlarmPicker";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
-import Highlight from "@tiptap/extension-highlight";
-import TextStyle from "@tiptap/extension-text-style";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
+import { Underline } from "@tiptap/extension-underline";
+import { Highlight } from "@tiptap/extension-highlight";
+import { TextStyle } from "@tiptap/extension-text-style";
 import { motion } from "motion/react";
 import {
   ArrowRight, Bold, Italic, Underline as UnderlineIcon,
