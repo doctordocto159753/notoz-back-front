@@ -90,7 +90,7 @@ const exportImportRoutes: FastifyPluginAsync = async (app) => {
     ])
 
     const state = {
-      schemaVersion: ExportImportSchemaVersion as const,
+      schemaVersion: ExportImportSchemaVersion,
       settings: {
         theme: settings?.theme ?? 'light',
         usePersianDigits: settings?.usePersianDigits ?? false,
