@@ -5,7 +5,7 @@ import { normalizeDigitsToEnglish } from '../utils/digits.js'
 
 const RegisterSchema = z.object({
   username: z.string().min(3).max(32),
-  password: z.string().min(6).max(72)
+  password: z.string().min(6).max(72),
 })
 
 const LoginSchema = RegisterSchema
@@ -29,14 +29,15 @@ const authRoutes: FastifyPluginAsync = async (app) => {
             theme: 'light',
             usePersianDigits: false,
             splitRatio: 0.5,
-            collapsed: 'none'
-          }
-        }
+            collapsed: 'none',
+          },
+        },
       },
-      select: { id: true, username: true }
+      select: { id: true, username: true },
     })
 
-    const accessToken = app.jwt.sign({ sub: user.id, username: user.username })
+    // ✅ FIX: no "sub" in payload, use { id, username }
+    const accessToken = app.jwt.sign({ id: user.id, username: user.username })
 
     return reply.code(201).send({ user, accessToken })
   })
@@ -51,7 +52,8 @@ const authRoutes: FastifyPluginAsync = async (app) => {
     const ok = await bcrypt.compare(body.password, user.passwordHash)
     if (!ok) return reply.code(401).send({ error: 'INVALID_CREDENTIALS' })
 
-    const accessToken = app.jwt.sign({ sub: user.id, username: user.username })
+    // ✅ FIX: no "sub" in payload, use { id, username }
+    const accessToken = app.jwt.sign({ id: user.id, username: user.username })
 
     return reply.send({ user: { id: user.id, username: user.username }, accessToken })
   })
