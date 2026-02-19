@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Theme {
+  light
+  dark
+}
+
+enum PanelCollapsed {
+  none
+  left
+  right
+}
+
+enum AlarmStatus {
+  scheduled
+  fired
+  dismissed
+  missed
+}
+
+enum AlarmRepeat {
+  none
+  daily
+  weekly
+}
+
+enum MediaStorage {
+  fs
+  blob
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
+
+  settings     Settings?
+  tags         Tag[]
+  checklist    ChecklistItem[]
+  notes        NoteBlock[]
+  alarms       Alarm[]
+  media        MediaAsset[]
+}
+
+model Settings {
+  id              String         @id @default(uuid())
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String         @unique
+
+  theme           Theme          @default(light)
+  usePersianDigits Boolean       @default(false)
+
+  splitRatio      Float          @default(0.5)
+  collapsed       PanelCollapsed @default(none)
+
+  createdAt       DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime       @updatedAt @db.Timestamptz(3)
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  title     String
+  colorKey  String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  checklistItems ChecklistItem[]
+  noteBlocks     NoteBlock[]
+
+  @@index([userId])
+  @@unique([userId, title])
+}
+
+model ChecklistItem {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+
+  title           String
+  descriptionHtml String   @default("")
+
+  checked         Boolean  @default(false)
+  pinned          Boolean  @default(false)
+  archived        Boolean  @default(false)
+
+  orderIndex      Int
+
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+  deletedAt       DateTime? @db.Timestamptz(3)
+
+  tags            Tag[]
+
+  alarm           Alarm?
+
+  @@index([userId, archived, pinned, checked])
+  @@index([userId, orderIndex])
+}
+
+model NoteBlock {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  // UI fields (frontend keeps a separate title input + HTML preview)
+  title      String   @default("")
+  html       String   @default("")
+
+  contentJson Json
+  searchText  String   @default("")
+
+  pinned     Boolean  @default(false)
+  archived   Boolean  @default(false)
+
+  orderIndex Int
+
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+  deletedAt  DateTime? @db.Timestamptz(3)
+
+  tags       Tag[]
+
+  alarm      Alarm?
+
+  @@index([userId, archived, pinned])
+  @@index([userId, orderIndex])
+}
+
+model Alarm {
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  at            DateTime @db.Timestamptz(3)
+  repeat        AlarmRepeat @default(none)
+  snoozeMinutes Int?
+  firedAt       DateTime? @db.Timestamptz(3)
+  status        AlarmStatus @default(scheduled)
+
+  checklistItem   ChecklistItem? @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+  checklistItemId String?        @unique
+
+  noteBlock       NoteBlock?     @relation(fields: [noteBlockId], references: [id], onDelete: Cascade)
+  noteBlockId     String?        @unique
+
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, status, at])
+}
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  mimeType  String
+  ext       String
+  width     Int?
+  height    Int?
+  sizeBytes Int
+
+  storage   MediaStorage @default(fs)
+
+  // fs driver
+  path      String?
+
+  // blob driver
+  url       String?
+  pathname  String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([userId])
+}
