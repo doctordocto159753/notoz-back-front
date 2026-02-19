@@ -17,8 +17,8 @@ export default fp(async (app: FastifyInstance) => {
         tags: ['api'],
         summary: `${method} ${routeOptions.url}`,
         response: {
-          200: { type: 'object', additionalProperties: true }
-        }
+          200: { type: 'object', additionalProperties: true },
+        },
       } as any
     }
   })
@@ -27,27 +27,31 @@ export default fp(async (app: FastifyInstance) => {
     openapi: {
       info: {
         title: 'NOTO API',
-        version: '0.1.0'
+        version: '0.1.0',
       },
       components: {
         securitySchemes: {
           bearerAuth: {
             type: 'http',
             scheme: 'bearer',
-            bearerFormat: 'JWT'
-          }
-        }
-      }
-    }
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+    },
   })
 
   await app.register(swaggerUi, {
     routePrefix: '/docs',
     uiConfig: {
       docExpansion: 'list',
-      deepLinking: false
-    }
+      deepLinking: false,
+    },
+    // ✅ این باعث می‌شود swagger-ui از همون swagger plugin spec استفاده کند
+    // و نیازی به app.get('/docs/json') دستی نباشد.
+    // swagger-ui خودش /docs/json را مدیریت می‌کند.
   })
 
-  app.get('/docs/json', async () => app.swagger())
+  // ❌ حذف شد چون swagger-ui خودش /docs/json را می‌سازد و duplicate می‌شد
+  // app.get('/docs/json', async () => app.swagger())
 })
