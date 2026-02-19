@@ -27,8 +27,8 @@ export function buildApp() {
   const app = Fastify({
     trustProxy: true,
     logger: {
-      level: env.LOG_LEVEL
-    }
+      level: env.LOG_LEVEL,
+    },
   })
 
   app.setErrorHandler((err, _req, reply) => {
@@ -42,7 +42,15 @@ export function buildApp() {
   })
 
   // Plugins
-  app.register(swaggerPlugin)
+  // ✅ Swagger باید قبل از register route ها بیاد تا onRoute کار کنه
+  // ✅ و فقط یکبار register شود
+  if (!(app as any).__swaggerRegistered) {
+    ;(app as any).__swaggerRegistered = true
+    app.register(swaggerPlugin)
+  } else {
+    app.log.warn('swaggerPlugin already registered; skipping duplicate registration')
+  }
+
   app.register(securityPlugin)
   app.register(metricsPlugin)
   app.register(uploadsPlugin)
