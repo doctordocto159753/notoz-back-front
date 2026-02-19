@@ -5,14 +5,14 @@ import { TagChip } from "./TagChip";
 import { AlarmPicker } from "./AlarmPicker";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import Highlight from "@tiptap/extension-highlight";
-import TextStyle from "@tiptap/extension-text-style";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
+import { Underline } from "@tiptap/extension-underline";
+import { extAlign } from "@tiptap/extension-text-align";
+import { Highlight } from "@tiptap/extension-highlight";
+import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
-import Link from "@tiptap/extension-link";
+import { Link } from "@tiptap/extension-link";
 import { motion } from "motion/react";
 import {
   ArrowRight, Bold, Italic, Underline as UnderlineIcon, Strikethrough,
