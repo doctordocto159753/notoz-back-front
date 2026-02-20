@@ -19,8 +19,14 @@ const STORAGE_KEY = "noto-app-state";
 const AUTH_STORAGE_KEY = "noto-auth";
 const UNDO_MAX = 50;
 
-const API_BASE_URL =
-  (import.meta as any)?.env?.VITE_API_BASE_URL || "http://localhost:8080";
+const rawBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+
+const API_BASE_URL = (rawBase && rawBase.trim().length > 0
+  ? rawBase.trim()
+  : import.meta.env.DEV
+    ? "http://localhost:8080"
+    : window.location.origin
+).replace(/\/+$/, "");
 
 type AuthState = {
   username: string;
